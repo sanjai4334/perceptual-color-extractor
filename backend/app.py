@@ -6,6 +6,8 @@ from PIL import Image
 
 from backend.extractor.pipeline import ProductColorExtractor
 from backend.utils.image_utils import encode_image_to_base64
+from backend.extractor.grouping import group_by_primary_color
+
 
 # -----------------------------
 # App initialization
@@ -86,3 +88,66 @@ def extract_multiple_images(files: List[UploadFile] = File(...)):
             results.append({"filename": file.filename, "error": str(e)})
 
     return JSONResponse(content=results)
+
+
+@app.post("/group")
+def group_images(files: List[UploadFile] = File(...)):
+    """
+    Process multiple images and group them based on
+    primary dominant color (LAB A,B).
+    """
+
+    processed = []
+
+    for file in files:
+        try:
+            # --- Validate & load ---
+            contents = file.file.read()
+            image_bytes = BytesIO(contents)
+            Image.open(image_bytes).convert("RGB")
+            image_bytes.seek(0)
+
+            # --- Run pipeline ---
+            result = extractor.process_image(image_bytes)
+
+            processed.append(
+                {
+                    "filename": file.filename,
+                    "ab": result["primary_ab"],
+                    "result": {
+                        "input_image": encode_image_to_base64(result["input"]),
+                        "depth_map": encode_image_to_base64(
+                            result["depth"], is_gray=True
+                        ),
+                        "saliency_map": encode_image_to_base64(
+                            result["saliency"], is_gray=True
+                        ),
+                        "importance_map": encode_image_to_base64(
+                            result["importance"], is_gray=True
+                        ),
+                        "dominant_colors": result["dominant_colors"],
+                    },
+                }
+            )
+
+        except Exception as e:
+            processed.append({"filename": file.filename, "error": str(e)})
+
+    # --- Group by perceptual color ---
+    groups = group_by_primary_color(processed)
+
+    # --- Prepare response ---
+    response = []
+    for idx, group in enumerate(groups):
+        response.append(
+            {
+                "group_id": idx + 1,
+                "group_ab": group["ab"],
+                "images": [
+                    {"filename": item["filename"], "result": item["result"]}
+                    for item in group["items"]
+                ],
+            }
+        )
+
+    return JSONResponse(content=response)

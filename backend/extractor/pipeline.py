@@ -1,9 +1,6 @@
 import cv2
 import numpy as np
-import torch
 from PIL import Image
-from sklearn.cluster import KMeans
-import torchvision.transforms as transforms
 
 from .depth import get_depth_map
 from .saliency import get_saliency_map
@@ -27,7 +24,7 @@ class ProductColorExtractor:
             image_bytes (bytes): raw uploaded image bytes
 
         Output:
-            dict with all intermediate maps + dominant colors
+            dict with all intermediate maps + dominant colors + primary_ab
         """
 
         # ================= Load image =================
@@ -52,10 +49,23 @@ class ProductColorExtractor:
             k=self.k_colors
         )
 
+        # ================= Primary AB extraction =================
+        # Take the top dominant color
+        primary_rgb = dominant_colors["rgb"][0]
+
+        # Convert RGB → LAB
+        lab = cv2.cvtColor(
+            np.array(primary_rgb, dtype=np.uint8).reshape(1, 1, 3),
+            cv2.COLOR_RGB2LAB
+        )[0][0]
+
+        primary_ab = [int(lab[1]), int(lab[2])]
+
         return {
             "input": img,
             "depth": depth,
             "saliency": saliency,
             "importance": importance,
-            "dominant_colors": dominant_colors
+            "dominant_colors": dominant_colors,
+            "primary_ab": primary_ab
         }
