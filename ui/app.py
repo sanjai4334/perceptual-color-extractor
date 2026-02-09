@@ -9,7 +9,7 @@ API_URL = "http://127.0.0.1:8000"
 st.set_page_config(page_title="Perceptual Color Extractor", layout="wide")
 
 st.title("🎨 Perceptual Color Extractor")
-st.caption("Depth + Saliency + Texture aware dominant color extraction")
+st.caption("Depth + Saliency aware dominant color extraction")
 
 uploaded_files = st.file_uploader(
     "Upload image(s)", type=["png", "jpg", "jpeg"], accept_multiple_files=True
@@ -33,22 +33,21 @@ if uploaded_files:
 
         data = response.json()
 
-        cols = st.columns(6)
-        titles = ["Input", "Depth", "Saliency", "Texture", "Importance", "Colors"]
+        cols = st.columns(5)
+        titles = ["Input", "Depth", "Saliency", "Importance", "Colors"]
         images = [
             data["input_image"],
             data["depth_map"],
             data["saliency_map"],
-            data["texture_map"],
             data["importance_map"],
         ]
 
-        for i in range(5):
+        for i in range(4):
             with cols[i]:
                 st.subheader(titles[i])
                 st.image(decode_image(images[i]), width="stretch")
 
-        with cols[5]:
+        with cols[4]:
             st.subheader("Dominant Colors")
             for hex_code in data["dominant_colors"]["hex"]:
                 st.markdown(
@@ -77,22 +76,21 @@ if uploaded_files:
 
             data = item["result"]
 
-            cols = st.columns(6)
-            titles = ["Input", "Depth", "Saliency", "Texture", "Importance", "Colors"]
+            cols = st.columns(5)
+            titles = ["Input", "Depth", "Saliency", "Importance", "Colors"]
             images = [
                 data["input_image"],
                 data["depth_map"],
                 data["saliency_map"],
-                data["texture_map"],
                 data["importance_map"],
             ]
 
-            for i in range(5):
+            for i in range(4):
                 with cols[i]:
                     st.subheader(titles[i])
                     st.image(decode_image(images[i]), width="stretch")
 
-            with cols[5]:
+            with cols[4]:
                 st.subheader("Dominant Colors")
                 for hex_code in data["dominant_colors"]["hex"]:
                     st.markdown(

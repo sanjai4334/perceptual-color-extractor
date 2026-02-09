@@ -11,7 +11,7 @@ def encode_image_to_base64(image, is_gray=False):
         image (np.ndarray):
             - RGB image: (H, W, 3), uint8
             - Grayscale image: (H, W), float or uint8
-        is_gray (bool): set True for depth/saliency/texture/importance maps
+        is_gray (bool): set True for depth/saliency/importance maps
 
     Returns:
         str: base64-encoded PNG image

@@ -1,7 +1,7 @@
 # Product Color Extractor
 
 Backend service for object-aware dominant color extraction using
-depth, saliency, and texture cues.
+depth, saliency.
 
 ## Setup
 

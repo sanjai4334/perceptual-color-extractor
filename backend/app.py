@@ -12,7 +12,7 @@ from backend.utils.image_utils import encode_image_to_base64
 # -----------------------------
 app = FastAPI(
     title="Perceptual Color Extractor",
-    description="Object-aware dominant color extraction using depth, saliency, and texture",
+    description="Object-aware dominant color extraction using depth, saliency",
     version="1.0.0",
 )
 
@@ -49,7 +49,6 @@ def process_uploaded_file(file: UploadFile):
         "input_image": encode_image_to_base64(result["input"]),
         "depth_map": encode_image_to_base64(result["depth"], is_gray=True),
         "saliency_map": encode_image_to_base64(result["saliency"], is_gray=True),
-        "texture_map": encode_image_to_base64(result["texture"], is_gray=True),
         "importance_map": encode_image_to_base64(result["importance"], is_gray=True),
         "dominant_colors": result["dominant_colors"],
     }

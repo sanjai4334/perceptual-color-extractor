@@ -7,14 +7,13 @@ import torchvision.transforms as transforms
 
 from .depth import get_depth_map
 from .saliency import get_saliency_map
-from .texture import get_texture_map
 from .dominant_colors import extract_dominant_colors
 
 
 class ProductColorExtractor:
     """
     Composite inference pipeline:
-    RGB -> Depth + Saliency + Texture -> Importance -> Dominant Colors
+    RGB -> Depth + Saliency -> Importance -> Dominant Colors
     """
 
     def __init__(self, device="cpu", image_size=300, k_colors=5):
@@ -42,11 +41,9 @@ class ProductColorExtractor:
         # ================= Saliency =================
         saliency = get_saliency_map(img)
 
-        # ================= Texture =================
-        texture = get_texture_map(img)
-
         # ================= Importance Fusion =================
-        importance = (depth ** 2) * saliency * (0.5 + texture)
+        importance = (depth ** 2) * saliency
+        importance = np.clip(importance, 0, 1)
 
         # ================= Dominant Colors =================
         dominant_colors = extract_dominant_colors(
@@ -59,7 +56,6 @@ class ProductColorExtractor:
             "input": img,
             "depth": depth,
             "saliency": saliency,
-            "texture": texture,
             "importance": importance,
             "dominant_colors": dominant_colors
         }
