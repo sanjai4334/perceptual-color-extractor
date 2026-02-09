@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+opencv-python
+numpy
+scikit-learn
+matplotlib
+pillow
+torch
+torchvision
+timm
+python-multipart
