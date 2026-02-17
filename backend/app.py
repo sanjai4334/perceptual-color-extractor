@@ -3,10 +3,12 @@ from fastapi.responses import JSONResponse
 from typing import List
 from io import BytesIO
 from PIL import Image
+import numpy as np
 
 from backend.extractor.pipeline import ProductColorExtractor
 from backend.utils.image_utils import encode_image_to_base64
 from backend.extractor.grouping import group_by_primary_color
+from backend.baselines.runner import run_all_baselines
 
 
 # -----------------------------
@@ -151,3 +153,46 @@ def group_images(files: List[UploadFile] = File(...)):
         )
 
     return JSONResponse(content=response)
+
+
+@app.post("/compare")
+def compare_baselines(file: UploadFile = File(...)):
+    """
+    Compare dominant color extraction baselines
+    on a single image.
+    """
+
+    try:
+        # ---- Read & validate image ----
+        contents = file.file.read()
+        image_bytes = BytesIO(contents)
+
+        image = Image.open(image_bytes).convert("RGB")
+        image = image.resize((extractor.image_size, extractor.image_size))
+        img = np.array(image)
+
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid image file")
+
+    # ---- Run shared depth + saliency ONCE ----
+    image_bytes.seek(0)
+    pipeline_out = extractor.process_image(BytesIO(contents))
+
+    depth = pipeline_out["depth"]
+    saliency = pipeline_out["saliency"]
+
+    # ---- Run baselines ----
+    baselines = run_all_baselines(
+        img=img,
+        depth=depth,
+        saliency=saliency,
+        k=extractor.k_colors,
+    )
+
+    # ---- Response ----
+    return JSONResponse(
+        content={
+            "input_image": encode_image_to_base64(img),
+            "baselines": baselines,
+        }
+    )

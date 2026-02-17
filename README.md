@@ -23,7 +23,13 @@ gdown "https://drive.google.com/uc?id=1rbSTGKAE-MTxBYHd-51l2hMOQPT_7EPy" -O weig
 Run server:
 
 ```bash
-uvicorn backend.app:app --reload
+uvicorn backend.app:app --reload --reload-dir backend
+```
+
+Run UI:
+
+```bash
+streamlit run ui/app.py
 ```
 
 Open:
